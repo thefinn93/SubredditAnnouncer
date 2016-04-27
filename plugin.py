@@ -48,8 +48,6 @@ class SubredditAnnouncer(callbacks.Plugin):
     """Add the help for "@plugin help SubredditAnnouncer" here
     This should describe *how* to use this plugin."""
 
-    pass
-
     def __init__(self, irc):
         self.__parent = super(SubredditAnnouncer, self)
         self.__parent.__init__(irc)
