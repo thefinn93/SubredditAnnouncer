@@ -43,6 +43,7 @@ import json
 _ = PluginInternationalization('SubredditAnnouncer')
 
 
+
 @internationalizeDocstring
 class SubredditAnnouncer(callbacks.Plugin):
     """Add the help for "@plugin help SubredditAnnouncer" here
@@ -73,6 +74,7 @@ class SubredditAnnouncer(callbacks.Plugin):
             self.log.warning("Failed to send to " + channel + ": " + str(type(e)))
             self.log.warning(str(e.args))
             self.log.warning(str(e))
+
 
     def checkReddit(self, irc):
         try:
@@ -105,7 +107,7 @@ class SubredditAnnouncer(callbacks.Plugin):
                     url = domain + "/r/" + sub + "/new.json?sort=new"
                     self.log.info("Checking " + url + " for " + channel)
                     request = requests.get(url, headers=self.headers)
-                    listing = json.loads(request.content)
+                    listing = request.json()
                     for post in listing['data']['children']:
                         if not post['data']['id'] in data[domain]['announced']:
                             shortlink = self.registryValue('domain') + "/" + post['data']['id']
@@ -126,15 +128,15 @@ class SubredditAnnouncer(callbacks.Plugin):
 
                             if post['data']['subreddit'] in data[domain]['subreddits']:
                                 msg = messageformat.format(redditname=redditname,
-                                    subreddit=post['data']['subreddit'].encode('utf-8').strip(),
-                                    title=post['data']['title'].encode('utf-8').strip(),
-                                    author=post['data']['author'].encode('utf-8').strip(),
-                                    link=post['data']['url'].encode('utf-8').strip(),
+                                    subreddit=sanatize(post['data']['subreddit']),
+                                    title=sanatize(post['data']['title']),
+                                    author=sanatize(post['data']['author']),
+                                    link=sanatize(post['data']['url']),
                                     shortlink=shortlink,
-                                    score=post['data']['score'].encode('utf-8').strip(),
-                                    ups=post['data']['ups'].encode('utf-8').strip(),
-                                    downs=post['data']['downs'].encode('utf-8').strip(),
-                                    comments=post['data']['num_comments'].encode('utf-8').strip(),
+                                    score=sanatize(post['data']['score']),
+                                    ups=sanatize(post['data']['ups']),
+                                    downs=sanatize(post['data']['downs']),
+                                    comments=sanatize(post['data']['num_comments']),
                                     domain=domain,
                                     bold=chr(002),
                                     underline="\037",
@@ -220,4 +222,10 @@ class SubredditAnnouncer(callbacks.Plugin):
 Class = SubredditAnnouncer
 
 
-# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
+def sanatize(unsanatized):
+    if type(unsanatized) is unicode:
+        return unsanatized.encode('utf-8').strip()
+    if type(unsanatized) is int:
+        return unsanatized
+    else:
+        return str(unsanatized)
