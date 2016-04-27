@@ -30,35 +30,39 @@
 
 import supybot.conf as conf
 import supybot.registry as registry
-from supybot.i18n import PluginInternationalization, internationalizeDocstring
-import os
+from supybot.i18n import PluginInternationalization
 
 _ = PluginInternationalization('SubredditAnnouncer')
 
+
 def configure(advanced):
-    from supybot.questions import expect, anything, something, yn
     conf.registerPlugin('SubredditAnnouncer')
 
 SubredditAnnouncer = conf.registerPlugin('SubredditAnnouncer')
 
+checkinterval_description = "How often, in minutes, to check reddit for new posts"
 conf.registerGlobalValue(SubredditAnnouncer, 'checkinterval',
-    registry.NonNegativeInteger(5, """How often, in minutes, to check reddit for new posts"""))
+                         registry.NonNegativeInteger(5, checkinterval_description))
+
+domain_description = "The domain to check. Probably http://www.reddit.com unless you've got a "
+domain_description += "different reddit install"
 
 conf.registerGlobalValue(SubredditAnnouncer, 'domain',
-    registry.String("http://www.reddit.com", """The domain to check. Probably http://www.reddit.com
-    unless you've got a different reddit install"""))
-    
-conf.registerGlobalValue(SubredditAnnouncer, 'redditname',
-    registry.String("Reddit", """The name of the reddit install. Not really a big deal. Leave blank
-    to not have the [reddit] part of the announce message"""))
+                         registry.String("http://www.reddit.com", domain_description))
 
+redditname_descripton = "The name of the reddit install. Not really a big deal. Leave blank to not "
+redditname_descripton += "have the [reddit] part of the announce message"
+conf.registerGlobalValue(SubredditAnnouncer, 'redditname',
+                         registry.String("Reddit", redditname_descripton))
+
+shortdomain_description = "The short domain to use. Probably http://redd.it unless you've got your "
+shortdomain_description += " own reddit install. If you don't have a short domain just set it to "
+shortdomain_description += "your long domain"
 conf.registerGlobalValue(SubredditAnnouncer, 'shortdomain',
-    registry.String("http://redd.it", """The short domain to use. Probably http://redd.it unless you've
-    got your own reddit install. If you don't have a short domain just set it to your long domain"""))
-    
-#conf.registerGlobalValue(SubredditAnnouncer, 'subreddits',
-#    registry.SpaceSeparatedListOfStrings('', """A list of subreddits to announce in each channel.
-#    Format is #channel:subreddit+subreddit+subreddit #channel2:subreddit+subreddit"""))
+                         registry.String("http://redd.it", shortdomain_description))
+
+
+configfile_description = "The configuration file used for setting up the subreddit/channels"
+configfile_default = conf.supybot.directories.data.dirize("subredditAnnouncer.ini")
 conf.registerGlobalValue(SubredditAnnouncer, 'configfile',
-    registry.String(conf.supybot.directories.data.dirize("subredditAnnouncer.ini"), """The configuration
-    file used for setting up the subreddit/channels"""))
+                         registry.String(configfile_default, configfile_description))
