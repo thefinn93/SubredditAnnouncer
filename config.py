@@ -66,3 +66,8 @@ configfile_description = "The configuration file used for setting up the subredd
 configfile_default = conf.supybot.directories.data.dirize("subredditAnnouncer.ini")
 conf.registerGlobalValue(SubredditAnnouncer, 'configfile',
                          registry.String(configfile_default, configfile_description))
+
+dsn_description = "The Sentry DSN to report errors to. Requires raven to be installed."
+dsn_description += "Set to an empty string to disable"
+conf.registerGlobalValue(SubredditAnnouncer, 'dsn',
+                         registry.String("", dsn_description))

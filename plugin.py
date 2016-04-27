@@ -32,6 +32,7 @@ from supybot.commands import wrap
 import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
 import supybot.ircdb as ircdb
+from supybot.registry import NonExistentRegistryEntry
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
 
 import supybot.schedule as schedule
@@ -39,9 +40,12 @@ import supybot.conf as conf
 import requests
 import ConfigParser
 import json
+try:
+    import raven
+except ImportError:
+    pass
 
 _ = PluginInternationalization('SubredditAnnouncer')
-
 
 
 @internationalizeDocstring
@@ -66,6 +70,14 @@ class SubredditAnnouncer(callbacks.Plugin):
             schedule.addPeriodicEvent(checkForPosts,
                                       self.registryValue('checkinterval')*60,
                                       'redditCheck', False)
+        try:
+            if self.registryValue('dsn') != "":
+                if "raven" in dir():  # Check that raven was actually imported
+                    self.raven = raven.Client(self.registryValue("dsn"))
+                else:
+                    self.log.error("dsn defined but raven not installed! Please pip install raven")
+        except NonExistentRegistryEntry:
+            pass
 
     def post(self, irc, channel, msg):
         try:
@@ -74,7 +86,6 @@ class SubredditAnnouncer(callbacks.Plugin):
             self.log.warning("Failed to send to " + channel + ": " + str(type(e)))
             self.log.warning(str(e.args))
             self.log.warning(str(e))
-
 
     def checkReddit(self, irc):
         try:
@@ -163,7 +174,10 @@ class SubredditAnnouncer(callbacks.Plugin):
                                     addtoindex.append(post['data']['subreddit'])
                             data[domain]['announced'].append(post['data']['id'])
                 except Exception as e:
-                    self.log.warning("Whoops! Something fucked up: " + str(e))
+                    if hasattr(self, 'raven'):
+                        self.raven.captureException()
+                    else:
+                        self.log.warning("Whoops! Something fucked up: " + str(e))
                 if domain not in data:
                     data[domain] = {"announced": [], "subreddits": []}
                     self.log.info("Creating data store for " + domain)
