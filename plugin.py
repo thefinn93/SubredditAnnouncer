@@ -28,7 +28,7 @@
 
 ###
 
-from supybot.commands import *
+from supybot.commands import wrap
 import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
 import supybot.ircdb as ircdb
